@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chase tracker</title>
+<style>
+:root{--bg:#eef1ee;--ink:#17231d;--mute:#5d6b63;--card:#fff;--line:#d5dcd6;--a:#1f4d3a;--b:#b3261e}
+@media(prefers-color-scheme:dark){:root{--bg:#101612;--ink:#e6ece7;--mute:#93a399;--card:#18211b;--line:#2b382f;--a:#6fc79a;--b:#ff8a80}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,sans-serif;font-variant-numeric:tabular-nums}
+main{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:1.1rem;margin:0 0 12px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+input,select,button{font:inherit;padding:6px 10px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px}
+button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--a);outline-offset:1px}
+#id{flex:1;min-width:220px}#lim{width:70px}
+.hero{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px}
+.big{font-size:2.6rem;font-weight:700;line-height:1.1}
+.sub{color:var(--mute)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:14px}
+.grid div{border-top:2px solid var(--line);padding-top:6px}
+.grid b{display:block;font-size:1.4rem}
+.hot{color:var(--b)}.ok{color:var(--a)}
+svg{width:100%;height:auto;background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:12px}
+.note{font-size:.9rem;color:var(--mute)}
+#rp{display:none;gap:8px;align-items:center;margin-bottom:12px}#rp input[type=range]{flex:1;padding:0}
+</style>
+</head>
+<body>
+<main>
+<h1>Chase tracker</h1>
+<div class="bar">
+  <select id="mode" aria-label="Mode">
+    <option value="fixtures/chase-fell-short.json">Replay: chase fell short</option>
+    <option value="fixtures/final-over-wide.json">Replay: wide in final over</option>
+    <option value="live">Live</option>
+  </select>
+  <input id="id" placeholder="Match ID (live only)" aria-label="Match ID">
+  <label>Overs <input id="lim" type="number" min="1" value="24"></label>
+</div>
+<div id="rp"><button id="play">Play</button><input id="pos" type="range" min="0" value="0" aria-label="Replay position"><span id="pl" class="note"></span></div>
+<div class="hero" aria-live="polite"><div id="head" class="sub"></div><div id="big" class="big"></div><div id="sub" class="sub"></div><div class="grid" id="grid"></div></div>
+<svg id="worm" viewBox="0 0 700 260" role="img" aria-label="Runs by ball, both innings"></svg>
+<svg id="mh" viewBox="0 0 700 150" role="img" aria-label="Runs per over, latest innings"></svg>
+<p class="note" id="msg"></p>
+</main>
+<script>
+const API='https://grassrootsapiproxy.cricket.com.au/scores/matches/';
+const $=id=>document.getElementById(id);
+let full=null,timer=null,poll=null;
+
+// Balls count towards the over unless they are a wide or no-ball in the FINAL over (rebowled there).
+// RULE: confirm against more final-over samples. Only this function encodes it.
+const counts=(b,lim)=>!(b.overNumber===lim-1&&(b.wides||b.noBalls));
+function series(balls,lim){let n=0;return balls.map(b=>{if(counts(b,lim))n++;return{n,r:b.progressRuns,w:b.progressWickets,o:b.overNumber}})}
+const ovs=n=>Math.floor(n/6)+'.'+n%6;
+
+function render(inns){
+  const lim=+$('lim').value||24,[i1,i2]=[...inns].sort((a,b)=>a.inningsOrder-b.inningsOrder);
+  const s1=series(i1?.balls||[],lim),s2=series(i2?.balls||[],lim);
+  const L=a=>a[a.length-1];
+  let head='',big='',sub='',cells=[];
+  const cell=(k,v,c='')=>cells.push(`<div><span class="sub">${k}</span><b class="${c}">${v}</b></div>`);
+  if(!s1.length){head='Waiting for first ball'}
+  else if(!s2.length){
+    const x=L(s1),crr=x.n?x.r*6/x.n:0;
+    head='First innings';big=`${x.r}/${x.w}`;sub=`${ovs(x.n)} overs of ${lim}`;
+    cell('Run rate',crr.toFixed(2));cell('Projected',Math.round(crr*lim));cell('Balls left',lim*6-x.n);
+  }else{
+    const t=L(s1).r+1,x=L(s2),left=lim*6-x.n,need=t-x.r;
+    const rrr=left>0?need*6/left:Infinity,crr=x.n?x.r*6/x.n:0;
+    head=`Chasing ${t}`;
+    if(need<=0){big='Target reached';sub=`${x.r}/${x.w} after ${ovs(x.n)} overs`}
+    else if(left<=0||x.w>=10){big=`Fell short by ${need-1}`;sub=`${x.r}/${x.w} after ${ovs(x.n)} overs`}
+    else{big=`${need} off ${left}`;sub=`${x.r}/${x.w} after ${ovs(x.n)} overs`;
+      cell('Required rate',rrr.toFixed(2),rrr>crr?'hot':'ok');cell('Current rate',crr.toFixed(2));
+      cell('Runs per wicket in hand',(need/Math.max(1,10-x.w)).toFixed(1));cell('Rate gap',(rrr-crr>0?'+':'')+(rrr-crr).toFixed(2),rrr>crr?'hot':'ok');
+      cell('Projected',Math.round(crr*lim))}
+    if(i2.balls.some(b=>b.overNumber===lim-1))$('msg').textContent='Final over: wides and no-balls are not counted as balls.';else $('msg').textContent='';
+  }
+  $('head').textContent=head;$('big').textContent=big;$('sub').textContent=sub;$('grid').innerHTML=cells.join('');
+  worm(s1,s2,lim);mh(s2.length?i2.balls:i1?.balls||[]);
+}
+function worm(s1,s2,lim){
+  const W=700,H=260,p=34,mx=Math.max(10,...[...s1,...s2].map(d=>d.r))*1.08,X=n=>p+(W-p-10)*n/(lim*6),Y=r=>H-24-(H-44)*r/mx;
+  const path=(s,c)=>s.length?`<polyline fill="none" stroke="${c}" stroke-width="2.2" points="${X(0)},${Y(0)} ${s.map(d=>X(d.n).toFixed(1)+','+Y(d.r).toFixed(1)).join(' ')}"/>`:'';
+  const wk=(s,c)=>s.filter((d,i)=>i&&d.w>s[i-1].w).map(d=>`<circle cx="${X(d.n)}" cy="${Y(d.r)}" r="4" fill="var(--card)" stroke="${c}" stroke-width="2"/>`).join('');
+  let g='';for(let k=0;k<=4;k++){const r=Math.round(mx*k/4);g+=`<line x1="${p}" x2="${W-10}" y1="${Y(r)}" y2="${Y(r)}" stroke="var(--line)"/><text x="4" y="${Y(r)+4}" font-size="11" fill="var(--mute)">${r}</text>`}
+  g+=`<text x="${p}" y="${H-6}" font-size="11" fill="var(--mute)">0</text><text x="${W-10}" y="${H-6}" font-size="11" fill="var(--mute)" text-anchor="end">${lim} overs</text>`;
+  $('worm').innerHTML=g+path(s1,'var(--a)')+path(s2,'var(--b)')+wk(s1,'var(--a)')+wk(s2,'var(--b)')+`<text x="${p+6}" y="16" font-size="12" fill="var(--a)">First innings</text><text x="${p+100}" y="16" font-size="12" fill="var(--b)">Chase</text>`;
+}
+function mh(balls){
+  const per={};balls.forEach(b=>per[b.overNumber]=(per[b.overNumber]||0)+b.runsBat+b.wides+b.noBalls+b.legByes+b.byes+b.penaltyRuns);
+  const ks=Object.keys(per).map(Number),m=Math.max(6,...Object.values(per)),W=700,bw=(W-40)/(+$('lim').value||24);
+  $('mh').innerHTML=`<text x="6" y="14" font-size="12" fill="var(--mute)">Runs per over</text>`+ks.map(k=>{const h=120*per[k]/m;return`<rect x="${20+k*bw}" y="${140-h}" width="${bw-3}" height="${h}" fill="var(--a)"/><text x="${20+k*bw+bw/2-1.5}" y="${136-h}" font-size="10" text-anchor="middle" fill="var(--mute)">${per[k]}</text>`}).join('');
+}
+
+// Replay: reveal the combined ball sequence a ball at a time.
+function slice(p){const [a,b]=[...full.innings].sort((x,y)=>x.inningsOrder-y.inningsOrder);const n1=a.balls.length;
+  return[{inningsOrder:1,balls:a.balls.slice(0,Math.min(p,n1))},{inningsOrder:2,balls:b?b.balls.slice(0,Math.max(0,p-n1)):[]}]}
+function stop(){clearInterval(timer);timer=null;$('play').textContent='Play'}
+async function load(){
+  stop();clearInterval(poll);const m=$('mode').value;$('msg').textContent='';
+  try{
+    if(m==='live'){
+      $('rp').style.display='none';
+      const go=async()=>{const id=$('id').value.trim();if(!id){$('msg').textContent='Enter the match ID from the Play Cricket URL.';return}
+        try{const r=await fetch(API+id+'/balls');if(!r.ok)throw new Error(r.status);full=await r.json();render(full.innings);$('msg').textContent='Updated '+new Date().toLocaleTimeString('en-AU')}
+        catch(e){$('msg').textContent='Feed error: '+e.message+'. Showing last good data.'}};
+      await go();poll=setInterval(go,60000);
+    }else{
+      full=await (await fetch(m)).json();
+      const tot=full.innings.reduce((s,i)=>s+i.balls.length,0);
+      $('rp').style.display='flex';$('pos').max=tot;$('pos').value=0;setPos(0);
+    }
+  }catch(e){$('msg').textContent='Could not load: '+e.message}
+}
+function setPos(p){$('pos').value=p;$('pl').textContent=p+' balls';render(slice(+p))}
+$('mode').onchange=load;$('id').onchange=load;$('lim').onchange=()=>full&&($('mode').value==='live'?render(full.innings):setPos($('pos').value));
+$('pos').oninput=e=>{stop();setPos(e.target.value)};
+$('play').onclick=()=>{if(timer)return stop();$('play').textContent='Pause';if(+$('pos').value>=+$('pos').max)setPos(0);
+  timer=setInterval(()=>{const p=+$('pos').value+1;if(p>+$('pos').max)return stop();setPos(p)},120)};
+load();
+</script>
+</body>
+</html>
