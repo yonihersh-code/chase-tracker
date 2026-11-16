@@ -3,78 +3,100 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#12392b">
 <title>Chase tracker</title>
 <style>
 :root{--bg:#eef2ee;--ink:#14201a;--mute:#5b6a61;--card:#fff;--line:#dbe2dc;--a:#1f6b4a;--b:#c0392b;--hero:#12392b;--shadow:0 1px 2px rgba(20,32,26,.06),0 4px 14px rgba(20,32,26,.05)}
 @media(prefers-color-scheme:dark){:root{--bg:#0e1511;--ink:#e6ece7;--mute:#93a399;--card:#17201a;--line:#2a372e;--a:#6fc79a;--b:#ff8a80;--hero:#0b2a1f;--shadow:none}}
-*{box-sizing:border-box}
+*{box-sizing:border-box}[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 "Avenir Next","Segoe UI",system-ui,sans-serif;font-variant-numeric:tabular-nums}
-.top{background:var(--hero);color:#f3f7f2;border-bottom:4px solid var(--b)}
-.top div{max-width:780px;margin:0 auto;padding:14px 16px}
-h1{font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;margin:0;opacity:.7;font-weight:600}
-#vs{font-size:1.15rem;font-weight:700;margin-top:2px}
-main{max-width:780px;margin:0 auto;padding:14px 16px 40px;display:grid;gap:14px}
+.top{background:var(--hero);color:#f3f7f2}
+.top div{max-width:780px;margin:0 auto;padding:12px 16px 14px}
+h1{font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;margin:0;opacity:.65;font-weight:600}
+#vs{font-size:1.1rem;font-weight:700;margin-top:2px}
+main{max-width:780px;margin:0 auto;padding:14px 16px 48px;display:grid;gap:14px}
+#t-charts,#t-teams,#t-players{display:grid;gap:14px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
-.card h2{font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:0 0 10px;font-weight:700}
-summary{cursor:pointer;font-weight:600}
-.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
-input,select,button{font:inherit;padding:7px 10px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px}
+.card h2{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:0 0 10px;font-weight:700}
+summary{cursor:pointer;list-style:none}summary::-webkit-details-marker{display:none}
+.pick summary{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.pick summary::after,.more summary::after{content:"\25BE";color:var(--mute)}
+details[open]>summary::after{content:"\25B4"}
+.more summary{display:flex;justify-content:space-between;font-size:.85rem;color:var(--mute)}
+.sl{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);font-weight:700}
+#psum{flex:1;text-align:right;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pbody{display:grid;gap:10px;margin-top:12px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.row>*{min-width:0}
+input,select,button{font:inherit;min-height:40px;padding:6px 10px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px}
 button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--a);outline-offset:2px}
-#id{flex:1;min-width:200px}#lim,#bat{width:68px}
-#rp{display:none;gap:10px;align-items:center}#rp input[type=range]{flex:1;padding:0;accent-color:var(--a)}
-.hero{background:var(--hero);color:#f3f7f2;border-radius:16px;padding:18px 18px 16px;box-shadow:var(--shadow)}
+.pri{background:var(--a);color:#fff;border-color:var(--a);font-weight:600}
+.f{display:flex;align-items:center;gap:6px;font-size:.88rem;color:var(--mute)}
+#id{flex:1 1 220px}#lim,#bat{width:68px}#saved{flex:1 1 180px}#msel,#rsel,#tsel{flex:1 1 140px}#msel{flex-basis:100%}
+.note{font-size:.85rem;color:var(--mute);margin:0}
+.status{margin:0;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);font-size:.88rem;color:var(--mute)}.status:empty{display:none}
+.hero{background:var(--hero);color:#f3f7f2;border-radius:16px;padding:18px;box-shadow:var(--shadow)}
 #head{opacity:.75;font-size:.95rem}
 .big{font-size:clamp(2.2rem,9vw,3.4rem);font-weight:800;letter-spacing:-.02em;line-height:1.05;margin:4px 0}
 #sub{opacity:.75}
-.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:14px}
+.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:14px}.chips:empty{display:none}
 .chip{background:rgba(255,255,255,.08);border-radius:10px;padding:8px 12px}
 .chip span{display:block;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;opacity:.7}
 .chip b{font-size:1.4rem}.hot{color:#ff9d92}.ok{color:#8fe0b0}
+#rp{display:none;gap:10px;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.14)}
+#rp button{background:rgba(255,255,255,.12);color:#fff;border-color:transparent;min-height:36px;min-width:72px}
+#rp input[type=range]{flex:1;padding:0;min-height:0;border:0;background:none;accent-color:#8fe0b0}
+#pl{font-size:.8rem;opacity:.7;min-width:62px;text-align:right}
+.tabs{display:flex;gap:4px;background:var(--line);padding:4px;border-radius:12px}
+.tabs button{flex:1;border:0;background:transparent;color:var(--mute);font-weight:600;min-height:38px}
+.tabs button[aria-selected=true]{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
 .lg{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:.85rem;margin-bottom:6px}
 .lg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
 svg{width:100%;height:auto;display:block}
 .seg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.seg button{min-height:34px;font-size:.88rem;border-radius:999px}
 .seg button[aria-pressed=true]{background:var(--a);color:#fff;border-color:var(--a)}
 .sc{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:.92rem}
-th,td{padding:6px 8px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
-th:first-child,td:first-child{text-align:left}
+th,td{padding:7px 8px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--card)}
 th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);font-weight:600}
 td small{color:var(--mute)}
-h3{font-size:.95rem;margin:14px 0 4px}
-.note{font-size:.85rem;color:var(--mute)}
-#msel{flex:1 1 100%;min-width:0}
-#gid{flex:1;min-width:200px}
-@media(max-width:480px){.card{padding:12px}}
+h3{font-size:.95rem;margin:16px 0 4px}
+@media(max-width:480px){.card{padding:12px}.hero{padding:16px}}
 </style>
 </head>
 <body>
-<header class="top"><div><h1>Chase tracker</h1><div id="vs">Pick a replay or go live</div></div></header>
+<header class="top"><div><h1>Chase tracker</h1><div id="vs">Pick a match or try a demo</div></div></header>
 <main>
-<details class="card" open><summary>Match settings</summary>
-<div class="bar">
-  <select id="mode" aria-label="Mode">
-    <option value="fixtures/chase-fell-short.json">Replay: chase fell short</option>
-    <option value="fixtures/final-over-wide.json">Replay: wide in final over</option>
-    <option value="live">Live</option>
-  </select>
-  <input id="id" placeholder="Match link or ID (live only)" aria-label="Match ID">
-  <label>Overs <input id="lim" type="number" min="0" value="24" placeholder="none" title="Leave blank for no limit"></label>
-  <label>Batters <input id="bat" type="number" min="2" max="11" value="11"></label>
-  <button id="dl" type="button">Download JSON</button>
-</div></details>
-<section class="card"><h2>Find a match</h2>
-<div class="bar" style="margin-top:0"><input id="gid" placeholder="Paste a grade link or ID" aria-label="Grade link or ID"><button id="gbtn" type="button">Load grade</button><select id="saved" aria-label="Saved grades"></select></div>
-<p class="note" id="gmsg" aria-live="polite"></p>
-<div class="bar" id="gf" hidden><select id="rsel" aria-label="Round"></select><select id="tsel" aria-label="Team"></select></div>
-<div class="bar" id="gm" hidden><select id="msel" aria-label="Match"></select></div></section>
-<div id="rp" class="card"><button id="play">Play</button><input id="pos" type="range" min="0" value="0" aria-label="Replay position"><span id="pl" class="note"></span></div>
-<section class="hero" aria-live="polite"><div id="head"></div><div id="big" class="big"></div><div id="sub"></div><div class="chips" id="grid"></div></section>
-<section class="card"><h2>Run progression</h2><div class="lg"></div><svg id="worm" viewBox="0 0 700 260" role="img" aria-label="Runs by ball, both innings"></svg></section>
-<section class="card"><h2>Runs per over</h2><div class="lg"></div><svg id="mh" viewBox="0 0 700 164" role="img" aria-label="Runs per over, both innings"></svg></section>
-<section class="card"><h2>Team comparison</h2><div class="sc" id="cmp"></div><p class="note">Each column is that team's batting. Extras are what the bowling side gave away.</p></section>
-<section class="card"><h2>Players</h2><div class="seg" id="seg"></div><div class="sc" id="bat-t"></div><h3 id="bw-h"></h3><div class="sc" id="bwl-t"></div></section>
-<p class="note" id="msg"></p>
+<details class="card pick" id="pick" open>
+  <summary><span class="sl">Match</span><span id="psum">Choose a match</span></summary>
+  <div class="pbody">
+    <div class="row"><input id="id" placeholder="Paste a match or grade link" aria-label="Match or grade link"><button id="lbtn" class="pri" type="button">Load</button></div>
+    <div class="row"><select id="saved" aria-label="Saved grades"></select></div>
+    <div class="row" id="gf" hidden><select id="rsel" aria-label="Round"></select><select id="tsel" aria-label="Team"></select></div>
+    <div class="row" id="gm" hidden><select id="msel" aria-label="Match"></select></div>
+    <p class="note" id="gmsg" aria-live="polite"></p>
+    <div class="row"><label class="f">Overs <input id="lim" type="number" min="0" value="24" placeholder="none" title="Leave blank for no limit"></label><label class="f">Batters <input id="bat" type="number" min="2" max="11" value="11"></label></div>
+    <details class="more"><summary>Demos and export</summary>
+      <div class="row" style="margin-top:10px"><select id="mode" aria-label="Source">
+        <option value="fixtures/chase-fell-short.json">Demo: chase fell short</option>
+        <option value="fixtures/final-over-wide.json">Demo: wide in final over</option>
+        <option value="live">Live data</option></select>
+        <button id="dl" type="button">Download JSON</button></div>
+    </details>
+    <input id="gid" hidden aria-hidden="true"><button id="gbtn" type="button" hidden>Load grade</button>
+  </div>
+</details>
+<p class="status" id="msg" aria-live="polite"></p>
+<section class="hero" aria-live="polite"><div id="head"></div><div id="big" class="big"></div><div id="sub"></div><div class="chips" id="grid"></div>
+  <div id="rp"><button id="play" type="button">Play</button><input id="pos" type="range" min="0" value="0" aria-label="Replay position"><span id="pl"></span></div></section>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-t="t-charts">Charts</button><button role="tab" aria-selected="false" data-t="t-teams">Teams</button><button role="tab" aria-selected="false" data-t="t-players">Players</button></div>
+<section id="t-charts">
+  <div class="card"><h2>Run progression</h2><div class="lg"></div><svg id="worm" viewBox="0 0 700 260" role="img" aria-label="Runs by ball, both innings"></svg></div>
+  <div class="card"><h2>Runs per over</h2><div class="lg"></div><svg id="mh" viewBox="0 0 700 164" role="img" aria-label="Runs per over, both innings"></svg></div>
+</section>
+<section id="t-teams" hidden><div class="card"><h2>Team comparison</h2><div class="sc" id="cmp"></div><p class="note" style="margin-top:8px">Each column is that team's batting. Extras are what the bowling side gave away.</p></div></section>
+<section id="t-players" hidden><div class="card"><h2>Players</h2><div class="seg" id="seg"></div><div class="sc" id="bat-t"></div><h3 id="bw-h"></h3><div class="sc" id="bwl-t"></div></div></section>
 </main>
 <script>
 const API='https://grassrootsapiproxy.cricket.com.au/scores/matches/';
@@ -133,7 +155,7 @@ function render(inns){
   const n1=nm(first)||'First innings',n2=I[1]?nm(I[1].battingTeamId)||'Chase':(oth(first)||'Chase');
   const span=limIn||Math.max(6,Math.ceil(Math.max(0,...S.map(x=>L(x).n))/6));
   const label=I.map((i,k)=>(nm(i.battingTeamId)||'Innings '+(k+1))+(I.length>2?(I.slice(0,k).some(j=>j.battingTeamId===i.battingTeamId)?' (2nd inns)':' (1st inns)'):''));
-  $('vs').textContent=T.length?`${n1} v ${n2}`:'Pick a replay or go live';
+  $('vs').textContent=T.length?`${n1} v ${n2}`:'Pick a match or try a demo';$('psum').textContent=T.length?`${n1} v ${n2}`:'Choose a match';
   let head='',big='',sub='',cells=[];
   const cell=(k,v,c='')=>cells.push(`<div class="chip"><span>${k}</span><b class="${c}">${v}</b></div>`);
   $('msg').textContent='';
@@ -264,13 +286,13 @@ async function load(){
         try{const j=await getJSON(API+id+'/balls?jsconfig=eccn%3Atrue');
           if(!j||!Array.isArray(j.innings))throw new Error('feed has no innings list (it returned: '+(j&&typeof j==='object'?Object.keys(j).join(', ')||'an empty object':String(j))+')');
           j.innings.forEach(i=>i.balls=i.balls||[]);const was=+$('pos').max,atEnd=+$('pos').value>=was;full=j;
-          const n=j.innings.reduce((t,i)=>t+i.balls.length,0);$('pos').max=n;setPos(atEnd?n:Math.min(+$('pos').value,n));$('msg').textContent='Updated '+new Date().toLocaleTimeString('en-AU')}
+          const n=j.innings.reduce((t,i)=>t+i.balls.length,0);$('pos').max=n;setPos(atEnd?n:Math.min(+$('pos').value,n));if(atEnd&&was===0)$('pick').open=false;$('msg').textContent='Updated '+new Date().toLocaleTimeString('en-AU')}
         catch(e){$('msg').textContent='Feed error: '+e.message+'. Showing last good data.'}};
       await go();poll=setInterval(go,60000);
     }else{
       full=await (await fetch(m)).json();
       const tot=full.innings.reduce((s,i)=>s+i.balls.length,0);
-      $('rp').style.display='flex';$('pos').max=tot;$('pos').value=0;setPos(0);
+      $('rp').style.display='flex';$('pos').max=tot;setPos(tot);
     }
   }catch(e){$('msg').textContent='Could not load: '+e.message}
 }
@@ -285,7 +307,11 @@ function takeLink(raw,fromBox){
   $('id').dataset.last=id;$('id').value=id;$('mode').value='live';load();
 }
 const gridGo=()=>{const v=$('gid').value;/\/match\//i.test(v)?takeLink(v,0):loadGrade(v)};
+$('lbtn').onclick=()=>{$('id').dataset.last='';takeLink($('id').value,1)};
 $('mode').onchange=load;
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>{const on=x===b;x.setAttribute('aria-selected',on);$(x.dataset.t).hidden=!on});ls.set('tab',b.dataset.t)});
+{const t=ls.get('tab','t-charts'),b=document.querySelector(`.tabs button[data-t="${t}"]`);if(b)b.click()}
 $('id').onchange=()=>takeLink($('id').value,1);
 $('id').addEventListener('paste',()=>setTimeout(()=>takeLink($('id').value,1),0));
 $('gid').addEventListener('paste',()=>setTimeout(gridGo,0));
