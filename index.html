@@ -43,6 +43,8 @@ th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mu
 td small{color:var(--mute)}
 h3{font-size:.95rem;margin:14px 0 4px}
 .note{font-size:.85rem;color:var(--mute)}
+#msel{flex:1 1 100%;min-width:0}
+#gid{flex:1;min-width:200px}
 @media(max-width:480px){.card{padding:12px}}
 </style>
 </head>
@@ -56,11 +58,16 @@ h3{font-size:.95rem;margin:14px 0 4px}
     <option value="fixtures/final-over-wide.json">Replay: wide in final over</option>
     <option value="live">Live</option>
   </select>
-  <input id="id" placeholder="Match ID (live only)" aria-label="Match ID">
+  <input id="id" placeholder="Match link or ID (live only)" aria-label="Match ID">
   <label>Overs <input id="lim" type="number" min="1" value="24"></label>
   <label>Batters <input id="bat" type="number" min="2" max="11" value="11"></label>
   <button id="dl" type="button">Download JSON</button>
 </div></details>
+<section class="card"><h2>Find a match</h2>
+<div class="bar" style="margin-top:0"><input id="gid" placeholder="Paste a grade link or ID" aria-label="Grade link or ID"><button id="gbtn" type="button">Load grade</button><select id="saved" aria-label="Saved grades"></select></div>
+<p class="note" id="gmsg" aria-live="polite"></p>
+<div class="bar" id="gf" hidden><select id="rsel" aria-label="Round"></select><select id="tsel" aria-label="Team"></select></div>
+<div class="bar" id="gm" hidden><select id="msel" aria-label="Match"></select></div></section>
 <div id="rp" class="card"><button id="play">Play</button><input id="pos" type="range" min="0" value="0" aria-label="Replay position"><span id="pl" class="note"></span></div>
 <section class="hero" aria-live="polite"><div id="head"></div><div id="big" class="big"></div><div id="sub"></div><div class="chips" id="grid"></div></section>
 <section class="card"><h2>Run progression</h2><div class="lg"></div><svg id="worm" viewBox="0 0 700 260" role="img" aria-label="Runs by ball, both innings"></svg></section>
@@ -73,6 +80,12 @@ h3{font-size:.95rem;margin:14px 0 4px}
 const API='https://grassrootsapiproxy.cricket.com.au/scores/matches/';
 const $=id=>document.getElementById(id);
 let full=null,timer=null,poll=null,sel=0,cur=null;
+async function getJSON(u){
+  const r=await fetch(u),t=await r.text(),b=t.trim();
+  if(!r.ok||!b)throw new Error(`HTTP ${r.status}, ${b?'body: '+b.slice(0,150):'empty body (no data for this ID, or the feed refused the request)'}`);
+  try{return JSON.parse(b)}catch(e){throw new Error(`not JSON (HTTP ${r.status}): `+b.slice(0,150))}
+}
+const uuid=t=>(String(t).match(/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}/i)||[''])[0].toLowerCase();
 const esc=t=>String(t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const ovs=n=>Math.floor(n/6)+'.'+n%6;
 const tot=b=>b.runsBat+b.wides+b.noBalls+b.legByes+b.byes+b.penaltyRuns;
@@ -184,17 +197,63 @@ function stats(i1,i2,n1,n2,lim){
   $('bwl-t').innerHTML=tbl(['Bowler','O','R','W','Econ','Dot %','Wd','Nb'],P.bowl.map(x=>[esc(x.nm),ovs(x.n),x.r,x.w,x.n?(x.r*6/x.n).toFixed(1):'-',pc(x.d,x.n),x.wd,x.nb]));
 }
 
+// Grade browser: lists every match in a grade, from the same feed the site uses.
+const G='https://grassrootsapiproxy.cricket.com.au/scores/grades/',Q='?jsconfig=eccn%3Atrue';
+let GM=[],GR=[],GCUR='';
+const ls={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function savedSel(){const g=ls.get('grades',[]);$('saved').innerHTML='<option value="">Saved grades</option>'+g.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}
+async function loadGrade(raw){
+  const id=uuid(raw);if(!id){$('gmsg').textContent='No grade ID found in that. Paste the link from a Play Cricket grade page (it contains /grade/ then a long ID).';return}
+  $('gmsg').textContent='Loading grade...';
+  try{
+    const [m,r]=await Promise.all([G+id+'/matches'+Q,G+id+'/rounds'+Q].map(getJSON));
+    GM=m.matches||[];GR=r.rounds||[];GCUR=r.grade?.currentRoundId||'';
+    ls.set('grades',[{id,name:r.grade?.name||id},...ls.get('grades',[]).filter(x=>x.id!==id)].slice(0,8));savedSel();$('saved').value=id;$('gid').value=id;
+    const team=ls.get('team','');
+    const teams=[...new Set(GM.flatMap(x=>x.teams.map(t=>t.displayName)))].sort();
+    $('tsel').innerHTML='<option value="">All teams</option>'+teams.map(t=>`<option${t===team?' selected':''}>${esc(t)}</option>`).join('');
+    $('rsel').innerHTML='<option value="">All rounds</option>'+GR.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
+    $('rsel').value=teams.includes(team)?'':GCUR;
+    $('gf').hidden=false;$('gm').hidden=false;$('gmsg').textContent=GM.length+' matches loaded. Choose a round, team and match below.';listMatches();
+  }catch(e){$('gmsg').textContent='Could not load grade: '+e.message+(e instanceof TypeError?' (the request was blocked or the connection failed)':'')}
+}
+function listMatches(){
+  const r=$('rsel').value,t=$('tsel').value;
+  const fmt=d=>d?new Date(d).toLocaleString('en-AU',{weekday:'short',day:'numeric',month:'short',timeZone:'Australia/Melbourne'}):'';
+  const rows=GM.filter(m=>(!r||m.round.id===r)&&(!t||m.teams.some(x=>x.displayName===t)))
+    .sort((a,b)=>(a.matchSchedule[0]?.startDateTime||'').localeCompare(b.matchSchedule[0]?.startDateTime||''));
+  const opts=rows.map(m=>{
+    const one=m.matchType==='One Day',skip=['UPCOMING','ABANDONED'].includes(m.status)||!one,
+      done=m.status==='COMPLETED',ov=done&&one?Math.ceil(Math.max(...m.teams.map(x=>+x.oversBowled||0))):0,
+      sc=m.teams.map(x=>x.scoreText||'-').join(' v ');
+    const line=!one?`${m.matchType}: not supported yet`:done?m.resultText||'':m.status==='ABANDONED'?'Abandoned':m.status==='UPCOMING'?'Upcoming':`${m.status} ${sc}`;
+    return`<option value="${m.id}" data-ov="${ov||''}"${skip?' disabled':''}>${esc(m.round.shortName)} ${fmt(m.matchSchedule[0]?.startDateTime)}: ${esc(m.teams.map(x=>x.displayName).join(' v '))} | ${esc(line)}</option>`}).join('');
+  $('msel').innerHTML=`<option value="">${rows.length?`Choose a match (${rows.length})`:'No matches for that filter'}</option>`+opts;
+}
+$('gbtn').onclick=()=>gridGo();
+$('gid').onchange=()=>gridGo();
+$('saved').onchange=e=>e.target.value&&loadGrade(e.target.value);
+$('rsel').onchange=listMatches;
+$('tsel').onchange=()=>{ls.set('team',$('tsel').value);listMatches()};
+$('msel').onchange=async e=>{
+  const o=e.target.selectedOptions[0];if(!o||!o.value)return;
+  $('mode').value='live';$('id').value=o.value;if(o.dataset.ov)$('lim').value=o.dataset.ov;
+  scrollTo({top:0,behavior:'smooth'});await load();
+  if(o.dataset.ov)$('msg').textContent+=` Overs set to ${o.dataset.ov} from the result. Change it if the game differed.`;
+};
+
 // Replay: reveal the combined ball sequence a ball at a time.
 function slice(p){const [a,b]=[...full.innings].sort((x,y)=>x.inningsOrder-y.inningsOrder);const n1=a.balls.length;
   return[{inningsOrder:1,battingTeamId:a.battingTeamId,balls:a.balls.slice(0,Math.min(p,n1))},{inningsOrder:2,battingTeamId:p>n1?b?.battingTeamId:undefined,balls:b?b.balls.slice(0,Math.max(0,p-n1)):[]}]}
 function stop(){clearInterval(timer);timer=null;$('play').textContent='Play'}
 async function load(){
+  if($('mode').value!=='live')$('id').dataset.last='';
   stop();clearInterval(poll);const m=$('mode').value;$('msg').textContent='';sel=0;
   try{
     if(m==='live'){
       $('rp').style.display='flex';$('pos').max=0;$('pos').value=0;$('pl').textContent='';
-      const go=async()=>{const id=$('id').value.trim();if(!id){$('msg').textContent='Enter the match ID from the Play Cricket URL.';return}
-        try{const r=await fetch(API+id+'/balls?jsconfig=eccn%3Atrue');if(r.status===204||r.status===404)throw new Error('no ball-by-ball data for this match ID ('+r.status+')');if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();
+      const go=async()=>{const id=uuid($('id').value);if(!id){$('msg').textContent='Paste the match link or the ID from the Play Cricket URL.';return}
+        try{const j=await getJSON(API+id+'/balls?jsconfig=eccn%3Atrue');
           if(!j||!Array.isArray(j.innings))throw new Error('feed has no innings list (it returned: '+(j&&typeof j==='object'?Object.keys(j).join(', ')||'an empty object':String(j))+')');
           j.innings.forEach(i=>i.balls=i.balls||[]);const was=+$('pos').max,atEnd=+$('pos').value>=was;full=j;
           const n=j.innings.reduce((t,i)=>t+i.balls.length,0);$('pos').max=n;setPos(atEnd?n:Math.min(+$('pos').value,n));$('msg').textContent='Updated '+new Date().toLocaleTimeString('en-AU')}
@@ -208,7 +267,21 @@ async function load(){
   }catch(e){$('msg').textContent='Could not load: '+e.message}
 }
 function setPos(p){$('pos').value=p;$('pl').textContent=p+' balls';render(slice(+p))}
-$('mode').onchange=load;$('id').onchange=load;$('lim').onchange=$('bat').onchange=()=>full&&setPos($('pos').value);
+// One-box linking: paste any Play Cricket match or grade link into either box, it works out which it is.
+function takeLink(raw,fromBox){
+  const id=uuid(raw);
+  if(!raw.trim())return;
+  if(!id){(fromBox?$('msg'):$('gmsg')).textContent='No ID found in that. Paste the full link from the Play Cricket page.';return}
+  if(/\/grade\//i.test(raw)){$('gid').value=id;$('id').value=$('id').dataset.last||'';return loadGrade(id)}
+  $('id').value=id;if($('id').dataset.last===id&&$('mode').value==='live')return;
+  $('id').dataset.last=id;$('id').value=id;$('mode').value='live';load();
+}
+const gridGo=()=>{const v=$('gid').value;/\/match\//i.test(v)?takeLink(v,0):loadGrade(v)};
+$('mode').onchange=load;
+$('id').onchange=()=>takeLink($('id').value,1);
+$('id').addEventListener('paste',()=>setTimeout(()=>takeLink($('id').value,1),0));
+$('gid').addEventListener('paste',()=>setTimeout(gridGo,0));
+$('lim').onchange=$('bat').onchange=()=>full&&setPos($('pos').value);
 $('dl').onclick=()=>{if(!full){$('msg').textContent='Nothing loaded yet.';return}
   const id=$('mode').value==='live'?($('id').value.trim()||'live'):'replay',a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(full)],{type:'application/json'}));a.download=`balls-${id}.json`;a.click();
@@ -216,7 +289,7 @@ $('dl').onclick=()=>{if(!full){$('msg').textContent='Nothing loaded yet.';return
 $('pos').oninput=e=>{stop();setPos(e.target.value)};
 $('play').onclick=()=>{if(timer)return stop();$('play').textContent='Pause';if(+$('pos').value>=+$('pos').max)setPos(0);
   timer=setInterval(()=>{const p=+$('pos').value+1;if(p>+$('pos').max)return stop();setPos(p)},120)};
-load();
+load();savedSel();{const g=ls.get('grades',[])[0];if(g)loadGrade(g.id)}
 </script>
 </body>
 </html>
