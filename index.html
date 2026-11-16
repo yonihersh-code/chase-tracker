@@ -5,31 +5,51 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Chase tracker</title>
 <style>
-:root{--bg:#eef1ee;--ink:#17231d;--mute:#5d6b63;--card:#fff;--line:#d5dcd6;--a:#1f4d3a;--b:#b3261e}
-@media(prefers-color-scheme:dark){:root{--bg:#101612;--ink:#e6ece7;--mute:#93a399;--card:#18211b;--line:#2b382f;--a:#6fc79a;--b:#ff8a80}}
+:root{--bg:#eef2ee;--ink:#14201a;--mute:#5b6a61;--card:#fff;--line:#dbe2dc;--a:#1f6b4a;--b:#c0392b;--hero:#12392b;--shadow:0 1px 2px rgba(20,32,26,.06),0 4px 14px rgba(20,32,26,.05)}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1511;--ink:#e6ece7;--mute:#93a399;--card:#17201a;--line:#2a372e;--a:#6fc79a;--b:#ff8a80;--hero:#0b2a1f;--shadow:none}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,sans-serif;font-variant-numeric:tabular-nums}
-main{max-width:760px;margin:0 auto;padding:16px}
-h1{font-size:1.1rem;margin:0 0 12px}
-.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
-input,select,button{font:inherit;padding:6px 10px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px}
-button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--a);outline-offset:1px}
-#id{flex:1;min-width:220px}#lim,#bat{width:70px}
-.hero{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px}
-.big{font-size:2.6rem;font-weight:700;line-height:1.1}
-.sub{color:var(--mute)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:14px}
-.grid div{border-top:2px solid var(--line);padding-top:6px}
-.grid b{display:block;font-size:1.4rem}
-.hot{color:var(--b)}.ok{color:var(--a)}
-svg{width:100%;height:auto;background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:12px}
-.note{font-size:.9rem;color:var(--mute)}
-#rp{display:none;gap:8px;align-items:center;margin-bottom:12px}#rp input[type=range]{flex:1;padding:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 "Avenir Next","Segoe UI",system-ui,sans-serif;font-variant-numeric:tabular-nums}
+.top{background:var(--hero);color:#f3f7f2;border-bottom:4px solid var(--b)}
+.top div{max-width:780px;margin:0 auto;padding:14px 16px}
+h1{font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;margin:0;opacity:.7;font-weight:600}
+#vs{font-size:1.15rem;font-weight:700;margin-top:2px}
+main{max-width:780px;margin:0 auto;padding:14px 16px 40px;display:grid;gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+.card h2{font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:0 0 10px;font-weight:700}
+summary{cursor:pointer;font-weight:600}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+input,select,button{font:inherit;padding:7px 10px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px}
+button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+#id{flex:1;min-width:200px}#lim,#bat{width:68px}
+#rp{display:none;gap:10px;align-items:center}#rp input[type=range]{flex:1;padding:0;accent-color:var(--a)}
+.hero{background:var(--hero);color:#f3f7f2;border-radius:16px;padding:18px 18px 16px;box-shadow:var(--shadow)}
+#head{opacity:.75;font-size:.95rem}
+.big{font-size:clamp(2.2rem,9vw,3.4rem);font-weight:800;letter-spacing:-.02em;line-height:1.05;margin:4px 0}
+#sub{opacity:.75}
+.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:14px}
+.chip{background:rgba(255,255,255,.08);border-radius:10px;padding:8px 12px}
+.chip span{display:block;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;opacity:.7}
+.chip b{font-size:1.4rem}.hot{color:#ff9d92}.ok{color:#8fe0b0}
+.lg{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:.85rem;margin-bottom:6px}
+.lg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+svg{width:100%;height:auto;display:block}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.seg button[aria-pressed=true]{background:var(--a);color:#fff;border-color:var(--a)}
+.sc{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{padding:6px 8px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);font-weight:600}
+td small{color:var(--mute)}
+h3{font-size:.95rem;margin:14px 0 4px}
+.note{font-size:.85rem;color:var(--mute)}
+@media(max-width:480px){.card{padding:12px}}
 </style>
 </head>
 <body>
+<header class="top"><div><h1>Chase tracker</h1><div id="vs">Pick a replay or go live</div></div></header>
 <main>
-<h1>Chase tracker</h1>
+<details class="card" open><summary>Match settings</summary>
 <div class="bar">
   <select id="mode" aria-label="Mode">
     <option value="fixtures/chase-fell-short.json">Replay: chase fell short</option>
@@ -39,34 +59,68 @@ svg{width:100%;height:auto;background:var(--card);border:1px solid var(--line);b
   <input id="id" placeholder="Match ID (live only)" aria-label="Match ID">
   <label>Overs <input id="lim" type="number" min="1" value="24"></label>
   <label>Batters <input id="bat" type="number" min="2" max="11" value="11"></label>
-</div>
-<div id="rp"><button id="play">Play</button><input id="pos" type="range" min="0" value="0" aria-label="Replay position"><span id="pl" class="note"></span></div>
-<div class="hero" aria-live="polite"><div id="head" class="sub"></div><div id="big" class="big"></div><div id="sub" class="sub"></div><div class="grid" id="grid"></div></div>
-<svg id="worm" viewBox="0 0 700 260" role="img" aria-label="Runs by ball, both innings"></svg>
-<svg id="mh" viewBox="0 0 700 164" role="img" aria-label="Runs per over, latest innings"></svg>
+</div></details>
+<div id="rp" class="card"><button id="play">Play</button><input id="pos" type="range" min="0" value="0" aria-label="Replay position"><span id="pl" class="note"></span></div>
+<section class="hero" aria-live="polite"><div id="head"></div><div id="big" class="big"></div><div id="sub"></div><div class="chips" id="grid"></div></section>
+<section class="card"><h2>Run progression</h2><div class="lg"></div><svg id="worm" viewBox="0 0 700 260" role="img" aria-label="Runs by ball, both innings"></svg></section>
+<section class="card"><h2>Runs per over</h2><div class="lg"></div><svg id="mh" viewBox="0 0 700 164" role="img" aria-label="Runs per over, both innings"></svg></section>
+<section class="card"><h2>Team comparison</h2><div class="sc" id="cmp"></div><p class="note">Each column is that team's batting. Extras are what the bowling side gave away.</p></section>
+<section class="card"><h2>Players</h2><div class="seg" id="seg"></div><div class="sc" id="bat-t"></div><h3 id="bw-h"></h3><div class="sc" id="bwl-t"></div></section>
 <p class="note" id="msg"></p>
 </main>
 <script>
 const API='https://grassrootsapiproxy.cricket.com.au/scores/matches/';
 const $=id=>document.getElementById(id);
-let full=null,timer=null,poll=null;
-
+let full=null,timer=null,poll=null,sel=0,cur=null;
+const esc=t=>String(t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const ovs=n=>Math.floor(n/6)+'.'+n%6;
+const tot=b=>b.runsBat+b.wides+b.noBalls+b.legByes+b.byes+b.penaltyRuns;
 // Balls count towards the over unless they are a wide or no-ball in the FINAL over (rebowled there).
 // RULE: confirm against more final-over samples. Only this function encodes it.
 const counts=(b,lim)=>!(b.overNumber===lim-1&&(b.wides||b.noBalls));
-function series(balls,lim){let n=0;return balls.map(b=>{if(counts(b,lim))n++;return{n,r:b.progressRuns,w:b.progressWickets,o:b.overNumber}})}
-const esc=t=>String(t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-const ovs=n=>Math.floor(n/6)+'.'+n%6;
+function series(balls,lim){let n=0;return balls.map(b=>{if(counts(b,lim))n++;return{n,r:b.progressRuns,w:b.progressWickets}})}
+
+function teamStats(balls,lim){
+  const ph=Math.ceil(lim/4),o={n:0,dots:0,f:0,s:0,wd:0,nb:0,bye:0,best:0,pr:[0,0,0,0],pw:[0,0,0,0]};let st=0,pw=0;
+  for(const b of balls){
+    const c=counts(b,lim),t=tot(b),p=Math.min(3,Math.floor(b.overNumber/ph));
+    if(c)o.n++;
+    if(c&&t===0){o.dots++;st++;o.best=Math.max(o.best,st)}else if(t>0)st=0;
+    if(b.runsBat===4)o.f++;if(b.runsBat===6)o.s++;
+    if(b.wides)o.wd++;if(b.noBalls)o.nb++;o.bye+=b.byes+b.legByes;
+    o.pr[p]+=t;o.pw[p]+=b.progressWickets-pw;pw=b.progressWickets;
+  }
+  const l=balls[balls.length-1];o.runs=l?l.progressRuns:0;o.wk=l?l.progressWickets:0;o.ph=ph;return o;
+}
+function players(balls,lim){
+  const B=new Map(),W=new Map();
+  const bt=(id,nm)=>{if(!id)return null;if(!B.has(id))B.set(id,{nm,r:0,b:0,d:0,f:0,s:0,out:''});return B.get(id)};
+  for(const x of balls){
+    const s=bt(x.strikerParticipantId,x.strikerShortName);bt(x.nonStrikerParticipantId,x.nonStrikerShortName);
+    if(s){s.r+=x.runsBat;if(!x.wides){s.b++;if(x.runsBat===0)s.d++}if(x.runsBat===4)s.f++;if(x.runsBat===6)s.s++}
+    if(x.dismissedParticipantId){const d=bt(x.dismissedParticipantId,'Batter');if(d)d.out=x.dismissalType||'out'}
+    const id=x.bowlerParticipantId;if(!id)continue;
+    if(!W.has(id))W.set(id,{nm:x.bowlerShortName,n:0,r:0,w:0,d:0,wd:0,nb:0});
+    const w=W.get(id),c=counts(x,lim),ch=x.runsBat+x.wides+x.noBalls;
+    if(c)w.n++;w.r+=ch;if(c&&ch===0)w.d++;if(x.wides)w.wd++;if(x.noBalls)w.nb++;
+    if(x.dismissalType&&x.dismissalType!=='Run Out')w.w++;
+  }
+  return{bat:[...B.values()],bowl:[...W.values()]};
+}
+const pc=(a,b)=>b?Math.round(100*a/b)+'%':'-';
+const tbl=(h,rows)=>`<table><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
 
 function render(inns){
+  cur=inns;
   const lim=+$('lim').value||24,out=(+$('bat').value||11)-1,[i1,i2]=[...inns].sort((a,b)=>a.inningsOrder-b.inningsOrder);
   const T=full?.teams||[],nm=id=>T.find(t=>t.id===id)?.displayName,
     n1=nm(i1?.battingTeamId)||'First innings',
     n2=nm(i2?.battingTeamId)||T.find(t=>t.id!==i1?.battingTeamId)?.displayName||'Chase';
-  const s1=series(i1?.balls||[],lim),s2=series(i2?.balls||[],lim);
-  const L=a=>a[a.length-1];
+  const s1=series(i1?.balls||[],lim),s2=series(i2?.balls||[],lim),L=a=>a[a.length-1];
+  $('vs').textContent=T.length?`${n1} v ${n2}`:'Pick a replay or go live';
   let head='',big='',sub='',cells=[];
-  const cell=(k,v,c='')=>cells.push(`<div><span class="sub">${k}</span><b class="${c}">${v}</b></div>`);
+  const cell=(k,v,c='')=>cells.push(`<div class="chip"><span>${k}</span><b class="${c}">${v}</b></div>`);
+  $('msg').textContent='';
   if(!s1.length){head='Waiting for first ball'}
   else if(!s2.length){
     const x=L(s1),crr=x.n?x.r*6/x.n:0;
@@ -82,28 +136,51 @@ function render(inns){
       cell('Required rate',rrr.toFixed(2),rrr>crr?'hot':'ok');cell('Current rate',crr.toFixed(2));
       cell('Runs per wicket in hand',(need/Math.max(1,out-x.w)).toFixed(1));cell('Rate gap',(rrr-crr>0?'+':'')+(rrr-crr).toFixed(2),rrr>crr?'hot':'ok');
       cell('Projected',Math.round(crr*lim))}
-    if(i2.balls.some(b=>b.overNumber===lim-1))$('msg').textContent='Final over: wides and no-balls are not counted as balls.';else $('msg').textContent='';
+    if(i2.balls.some(b=>b.overNumber===lim-1))$('msg').textContent='Final over: wides and no-balls are not counted as balls.';
   }
   $('head').textContent=head;$('big').textContent=big;$('sub').textContent=sub;$('grid').innerHTML=cells.join('');
-  worm(s1,s2,lim,n1,n2);mh(i1?.balls||[],i2?.balls||[],n1,n2);
+  document.querySelectorAll('.lg').forEach(e=>e.innerHTML=`<span><i style="background:var(--a)"></i>${esc(n1)}</span>`+(s2.length||T.length?`<span><i style="background:var(--b)"></i>${esc(n2)}</span>`:''));
+  worm(s1,s2,lim);mh(i1?.balls||[],i2?.balls||[],lim);stats(i1,i2,n1,n2,lim);
 }
-function worm(s1,s2,lim,n1,n2){
+function worm(s1,s2,lim){
   const W=700,H=260,p=34,mx=Math.max(10,...[...s1,...s2].map(d=>d.r))*1.08,X=n=>p+(W-p-10)*n/(lim*6),Y=r=>H-24-(H-44)*r/mx;
-  const path=(s,c)=>s.length?`<polyline fill="none" stroke="${c}" stroke-width="2.2" points="${X(0)},${Y(0)} ${s.map(d=>X(d.n).toFixed(1)+','+Y(d.r).toFixed(1)).join(' ')}"/>`:'';
-  const wk=(s,c)=>s.filter((d,i)=>i&&d.w>s[i-1].w).map(d=>`<circle cx="${X(d.n)}" cy="${Y(d.r)}" r="4" fill="var(--card)" stroke="${c}" stroke-width="2"/>`).join('');
+  const path=(s,c)=>s.length?`<polyline fill="none" stroke="${c}" stroke-width="2.4" stroke-linejoin="round" points="${X(0)},${Y(0)} ${s.map(d=>X(d.n).toFixed(1)+','+Y(d.r).toFixed(1)).join(' ')}"/>`:'';
+  const wk=(s,c)=>s.filter((d,i)=>i&&d.w>s[i-1].w).map(d=>`<circle cx="${X(d.n)}" cy="${Y(d.r)}" r="4.5" fill="var(--card)" stroke="${c}" stroke-width="2"/>`).join('');
   let g='';for(let k=0;k<=4;k++){const r=Math.round(mx*k/4);g+=`<line x1="${p}" x2="${W-10}" y1="${Y(r)}" y2="${Y(r)}" stroke="var(--line)"/><text x="4" y="${Y(r)+4}" font-size="11" fill="var(--mute)">${r}</text>`}
   const st=lim>30?10:lim>16?4:2;
   for(let o=0;o<=lim;o+=st)g+=`<line x1="${X(o*6)}" x2="${X(o*6)}" y1="${Y(0)}" y2="${Y(mx)}" stroke="var(--line)" stroke-dasharray="2 4"/><text x="${X(o*6)}" y="${H-6}" font-size="11" fill="var(--mute)" text-anchor="middle">${o}</text>`;
   g+=`<text x="${W-10}" y="${H-18}" font-size="11" fill="var(--mute)" text-anchor="end">overs</text>`;
-  $('worm').innerHTML=g+path(s1,'var(--a)')+path(s2,'var(--b)')+wk(s1,'var(--a)')+wk(s2,'var(--b)')+`<text x="${p+6}" y="16" font-size="12" fill="var(--a)">${esc(n1)}</text><text x="${p+30+n1.length*6.5}" y="16" font-size="12" fill="var(--b)">${esc(n2)}</text>`;
+  $('worm').innerHTML=g+path(s1,'var(--a)')+path(s2,'var(--b)')+wk(s1,'var(--a)')+wk(s2,'var(--b)');
 }
-function mh(b1,b2,n1,n2){
-  const lim=+$('lim').value||24,W=700,bw=(W-40)/lim,half=(bw-3)/2,st=lim>16?2:1;
-  const tally=balls=>{const per={};balls.forEach(b=>per[b.overNumber]=(per[b.overNumber]||0)+b.runsBat+b.wides+b.noBalls+b.legByes+b.byes+b.penaltyRuns);return per};
+function mh(b1,b2,lim){
+  const W=700,bw=(W-40)/lim,half=(bw-3)/2,st=lim>16?2:1;
+  const tally=balls=>{const per={};balls.forEach(b=>per[b.overNumber]=(per[b.overNumber]||0)+tot(b));return per};
   const p1=tally(b1),p2=tally(b2),m=Math.max(6,...Object.values(p1),...Object.values(p2));
-  const bars=(per,off,c)=>Object.keys(per).map(k=>{const h=110*per[k]/m,x=20+k*bw+off;return`<rect x="${x}" y="${140-h}" width="${half}" height="${h}" fill="${c}"/><text x="${x+half/2}" y="${136-h}" font-size="9" text-anchor="middle" fill="var(--mute)">${per[k]}</text>`}).join('');
+  const bars=(per,off,c)=>Object.keys(per).map(k=>{const h=118*per[k]/m,x=20+k*bw+off;return`<rect x="${x}" y="${140-h}" width="${half}" height="${h}" rx="2" fill="${c}"/><text x="${x+half/2}" y="${136-h}" font-size="9" text-anchor="middle" fill="var(--mute)">${per[k]}</text>`}).join('');
   let ax='';for(let k=0;k<lim;k+=st)ax+=`<text x="${20+k*bw+bw/2-1.5}" y="157" font-size="10" text-anchor="middle" fill="var(--mute)">${k+1}</text>`;
-  $('mh').innerHTML=`<text x="6" y="14" font-size="12" fill="var(--mute)">Runs per over</text><text x="110" y="14" font-size="12" fill="var(--a)">${esc(n1)}</text><text x="${134+n1.length*6.5}" y="14" font-size="12" fill="var(--b)">${esc(n2)}</text>`+ax+bars(p1,0,'var(--a)')+bars(p2,half,'var(--b)');
+  $('mh').innerHTML=ax+bars(p1,0,'var(--a)')+bars(p2,half,'var(--b)');
+}
+function stats(i1,i2,n1,n2,lim){
+  const ins=[[i1,n1],[i2,n2]].filter(([i])=>i&&i.balls.length),has=ins.length;
+  if(!has){$('cmp').innerHTML='<p class="note">No balls yet.</p>';$('seg').innerHTML='';$('bat-t').innerHTML=$('bwl-t').innerHTML='';$('bw-h').textContent='';return}
+  const S=ins.map(([i])=>teamStats(i.balls,lim)),r=[];
+  const add=(k,f)=>r.push([k,...S.map(f)]);
+  add('Score',s=>`${s.runs}/${s.wk}`);add('Overs',s=>ovs(s.n));
+  add('Run rate',s=>s.n?(s.runs*6/s.n).toFixed(2):'-');
+  add('Dot balls',s=>`${pc(s.dots,s.n)} <small>(${s.dots})</small>`);
+  add('Longest dot run',s=>s.best+' balls');
+  add('Fours / sixes',s=>`${s.f} / ${s.s}`);
+  add('Runs in boundaries',s=>pc(4*s.f+6*s.s,s.runs));
+  add('Wides / no-balls',s=>`${s.wd} / ${s.nb}`);add('Byes and leg byes',s=>s.bye);
+  for(let p=0;p<4;p++){const a=p*S[0].ph+1,b=Math.min(lim,(p+1)*S[0].ph);add(`Overs ${a}-${b}`,s=>`${s.pr[p]} <small>(${s.pw[p]} wkt)</small>`)}
+  $('cmp').innerHTML=tbl(['',...ins.map(([,n])=>esc(n))],r);
+  if(!sel||!ins.some(([i])=>i.inningsOrder===sel))sel=ins[ins.length-1][0].inningsOrder;
+  $('seg').innerHTML=ins.map(([i,n])=>`<button aria-pressed="${i.inningsOrder===sel}" data-i="${i.inningsOrder}">${esc(n)} batting</button>`).join('');
+  document.querySelectorAll('#seg button').forEach(b=>b.onclick=()=>{sel=+b.dataset.i;render(cur)});
+  const [ci,cn]=ins.find(([i])=>i.inningsOrder===sel),other=ci===i1?n2:n1,P=players(ci.balls,lim);
+  $('bat-t').innerHTML=tbl(['Batter','R','B','4s','6s','SR','Dot %'],P.bat.map(x=>[esc(x.nm)+(x.out?` <small>${esc(x.out)}</small>`:' <small>not out</small>'),x.r,x.b,x.f,x.s,x.b?(100*x.r/x.b).toFixed(0):'-',pc(x.d,x.b)]));
+  $('bw-h').textContent=`Bowling: ${other}`;
+  $('bwl-t').innerHTML=tbl(['Bowler','O','R','W','Econ','Dot %','Wd','Nb'],P.bowl.map(x=>[esc(x.nm),ovs(x.n),x.r,x.w,x.n?(x.r*6/x.n).toFixed(1):'-',pc(x.d,x.n),x.wd,x.nb]));
 }
 
 // Replay: reveal the combined ball sequence a ball at a time.
@@ -111,7 +188,7 @@ function slice(p){const [a,b]=[...full.innings].sort((x,y)=>x.inningsOrder-y.inn
   return[{inningsOrder:1,battingTeamId:a.battingTeamId,balls:a.balls.slice(0,Math.min(p,n1))},{inningsOrder:2,battingTeamId:p>n1?b?.battingTeamId:undefined,balls:b?b.balls.slice(0,Math.max(0,p-n1)):[]}]}
 function stop(){clearInterval(timer);timer=null;$('play').textContent='Play'}
 async function load(){
-  stop();clearInterval(poll);const m=$('mode').value;$('msg').textContent='';
+  stop();clearInterval(poll);const m=$('mode').value;$('msg').textContent='';sel=0;
   try{
     if(m==='live'){
       $('rp').style.display='none';
