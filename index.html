@@ -14,7 +14,7 @@ h1{font-size:1.1rem;margin:0 0 12px}
 .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
 input,select,button{font:inherit;padding:6px 10px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px}
 button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--a);outline-offset:1px}
-#id{flex:1;min-width:220px}#lim{width:70px}
+#id{flex:1;min-width:220px}#lim,#bat{width:70px}
 .hero{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px}
 .big{font-size:2.6rem;font-weight:700;line-height:1.1}
 .sub{color:var(--mute)}
@@ -38,6 +38,7 @@ svg{width:100%;height:auto;background:var(--card);border:1px solid var(--line);b
   </select>
   <input id="id" placeholder="Match ID (live only)" aria-label="Match ID">
   <label>Overs <input id="lim" type="number" min="1" value="24"></label>
+  <label>Batters <input id="bat" type="number" min="2" max="11" value="11"></label>
 </div>
 <div id="rp"><button id="play">Play</button><input id="pos" type="range" min="0" value="0" aria-label="Replay position"><span id="pl" class="note"></span></div>
 <div class="hero" aria-live="polite"><div id="head" class="sub"></div><div id="big" class="big"></div><div id="sub" class="sub"></div><div class="grid" id="grid"></div></div>
@@ -57,7 +58,7 @@ function series(balls,lim){let n=0;return balls.map(b=>{if(counts(b,lim))n++;ret
 const ovs=n=>Math.floor(n/6)+'.'+n%6;
 
 function render(inns){
-  const lim=+$('lim').value||24,[i1,i2]=[...inns].sort((a,b)=>a.inningsOrder-b.inningsOrder);
+  const lim=+$('lim').value||24,out=(+$('bat').value||11)-1,[i1,i2]=[...inns].sort((a,b)=>a.inningsOrder-b.inningsOrder);
   const s1=series(i1?.balls||[],lim),s2=series(i2?.balls||[],lim);
   const L=a=>a[a.length-1];
   let head='',big='',sub='',cells=[];
@@ -72,10 +73,10 @@ function render(inns){
     const rrr=left>0?need*6/left:Infinity,crr=x.n?x.r*6/x.n:0;
     head=`Chasing ${t}`;
     if(need<=0){big='Target reached';sub=`${x.r}/${x.w} after ${ovs(x.n)} overs`}
-    else if(left<=0||x.w>=10){big=`Fell short by ${need-1}`;sub=`${x.r}/${x.w} after ${ovs(x.n)} overs`}
+    else if(left<=0||x.w>=out){big=`Fell short by ${need-1}`;sub=`${x.r}/${x.w} after ${ovs(x.n)} overs`}
     else{big=`${need} off ${left}`;sub=`${x.r}/${x.w} after ${ovs(x.n)} overs`;
       cell('Required rate',rrr.toFixed(2),rrr>crr?'hot':'ok');cell('Current rate',crr.toFixed(2));
-      cell('Runs per wicket in hand',(need/Math.max(1,10-x.w)).toFixed(1));cell('Rate gap',(rrr-crr>0?'+':'')+(rrr-crr).toFixed(2),rrr>crr?'hot':'ok');
+      cell('Runs per wicket in hand',(need/Math.max(1,out-x.w)).toFixed(1));cell('Rate gap',(rrr-crr>0?'+':'')+(rrr-crr).toFixed(2),rrr>crr?'hot':'ok');
       cell('Projected',Math.round(crr*lim))}
     if(i2.balls.some(b=>b.overNumber===lim-1))$('msg').textContent='Final over: wides and no-balls are not counted as balls.';else $('msg').textContent='';
   }
@@ -117,7 +118,7 @@ async function load(){
   }catch(e){$('msg').textContent='Could not load: '+e.message}
 }
 function setPos(p){$('pos').value=p;$('pl').textContent=p+' balls';render(slice(+p))}
-$('mode').onchange=load;$('id').onchange=load;$('lim').onchange=()=>full&&($('mode').value==='live'?render(full.innings):setPos($('pos').value));
+$('mode').onchange=load;$('id').onchange=load;$('lim').onchange=$('bat').onchange=()=>full&&($('mode').value==='live'?render(full.innings):setPos($('pos').value));
 $('pos').oninput=e=>{stop();setPos(e.target.value)};
 $('play').onclick=()=>{if(timer)return stop();$('play').textContent='Pause';if(+$('pos').value>=+$('pos').max)setPos(0);
   timer=setInterval(()=>{const p=+$('pos').value+1;if(p>+$('pos').max)return stop();setPos(p)},120)};
