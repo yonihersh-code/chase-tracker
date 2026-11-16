@@ -81,7 +81,7 @@ function render(inns){
     if(i2.balls.some(b=>b.overNumber===lim-1))$('msg').textContent='Final over: wides and no-balls are not counted as balls.';else $('msg').textContent='';
   }
   $('head').textContent=head;$('big').textContent=big;$('sub').textContent=sub;$('grid').innerHTML=cells.join('');
-  worm(s1,s2,lim);mh(s2.length?i2.balls:i1?.balls||[]);
+  worm(s1,s2,lim);mh(i1?.balls||[],i2?.balls||[]);
 }
 function worm(s1,s2,lim){
   const W=700,H=260,p=34,mx=Math.max(10,...[...s1,...s2].map(d=>d.r))*1.08,X=n=>p+(W-p-10)*n/(lim*6),Y=r=>H-24-(H-44)*r/mx;
@@ -93,10 +93,13 @@ function worm(s1,s2,lim){
   g+=`<text x="${W-10}" y="${H-18}" font-size="11" fill="var(--mute)" text-anchor="end">overs</text>`;
   $('worm').innerHTML=g+path(s1,'var(--a)')+path(s2,'var(--b)')+wk(s1,'var(--a)')+wk(s2,'var(--b)')+`<text x="${p+6}" y="16" font-size="12" fill="var(--a)">First innings</text><text x="${p+100}" y="16" font-size="12" fill="var(--b)">Chase</text>`;
 }
-function mh(balls){
-  const per={};balls.forEach(b=>per[b.overNumber]=(per[b.overNumber]||0)+b.runsBat+b.wides+b.noBalls+b.legByes+b.byes+b.penaltyRuns);
-  const ks=Object.keys(per).map(Number),m=Math.max(6,...Object.values(per)),W=700,bw=(W-40)/(+$('lim').value||24);
-  $('mh').innerHTML=`<text x="6" y="14" font-size="12" fill="var(--mute)">Runs per over</text>`+Array.from({length:(+$('lim').value||24)},(_,k)=>k).filter(k=>k%((+$('lim').value||24)>16?2:1)===0).map(k=>`<text x="${20+k*bw+bw/2-1.5}" y="157" font-size="10" text-anchor="middle" fill="var(--mute)">${k+1}</text>`).join('')+ks.map(k=>{const h=120*per[k]/m;return`<rect x="${20+k*bw}" y="${140-h}" width="${bw-3}" height="${h}" fill="var(--a)"/><text x="${20+k*bw+bw/2-1.5}" y="${136-h}" font-size="10" text-anchor="middle" fill="var(--mute)">${per[k]}</text>`}).join('');
+function mh(b1,b2){
+  const lim=+$('lim').value||24,W=700,bw=(W-40)/lim,half=(bw-3)/2,st=lim>16?2:1;
+  const tally=balls=>{const per={};balls.forEach(b=>per[b.overNumber]=(per[b.overNumber]||0)+b.runsBat+b.wides+b.noBalls+b.legByes+b.byes+b.penaltyRuns);return per};
+  const p1=tally(b1),p2=tally(b2),m=Math.max(6,...Object.values(p1),...Object.values(p2));
+  const bars=(per,off,c)=>Object.keys(per).map(k=>{const h=110*per[k]/m,x=20+k*bw+off;return`<rect x="${x}" y="${140-h}" width="${half}" height="${h}" fill="${c}"/><text x="${x+half/2}" y="${136-h}" font-size="9" text-anchor="middle" fill="var(--mute)">${per[k]}</text>`}).join('');
+  let ax='';for(let k=0;k<lim;k+=st)ax+=`<text x="${20+k*bw+bw/2-1.5}" y="157" font-size="10" text-anchor="middle" fill="var(--mute)">${k+1}</text>`;
+  $('mh').innerHTML=`<text x="6" y="14" font-size="12" fill="var(--mute)">Runs per over</text><text x="110" y="14" font-size="12" fill="var(--a)">First innings</text><text x="210" y="14" font-size="12" fill="var(--b)">Chase</text>`+ax+bars(p1,0,'var(--a)')+bars(p2,half,'var(--b)');
 }
 
 // Replay: reveal the combined ball sequence a ball at a time.
