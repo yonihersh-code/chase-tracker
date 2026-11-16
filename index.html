@@ -192,11 +192,12 @@ async function load(){
   stop();clearInterval(poll);const m=$('mode').value;$('msg').textContent='';sel=0;
   try{
     if(m==='live'){
-      $('rp').style.display='none';
+      $('rp').style.display='flex';$('pos').max=0;$('pos').value=0;$('pl').textContent='';
       const go=async()=>{const id=$('id').value.trim();if(!id){$('msg').textContent='Enter the match ID from the Play Cricket URL.';return}
         try{const r=await fetch(API+id+'/balls?jsconfig=eccn%3Atrue');if(r.status===204||r.status===404)throw new Error('no ball-by-ball data for this match ID ('+r.status+')');if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();
           if(!j||!Array.isArray(j.innings))throw new Error('feed has no innings list (it returned: '+(j&&typeof j==='object'?Object.keys(j).join(', ')||'an empty object':String(j))+')');
-          j.innings.forEach(i=>i.balls=i.balls||[]);full=j;render(full.innings);$('msg').textContent='Updated '+new Date().toLocaleTimeString('en-AU')}
+          j.innings.forEach(i=>i.balls=i.balls||[]);const was=+$('pos').max,atEnd=+$('pos').value>=was;full=j;
+          const n=j.innings.reduce((t,i)=>t+i.balls.length,0);$('pos').max=n;setPos(atEnd?n:Math.min(+$('pos').value,n));$('msg').textContent='Updated '+new Date().toLocaleTimeString('en-AU')}
         catch(e){$('msg').textContent='Feed error: '+e.message+'. Showing last good data.'}};
       await go();poll=setInterval(go,60000);
     }else{
@@ -207,7 +208,7 @@ async function load(){
   }catch(e){$('msg').textContent='Could not load: '+e.message}
 }
 function setPos(p){$('pos').value=p;$('pl').textContent=p+' balls';render(slice(+p))}
-$('mode').onchange=load;$('id').onchange=load;$('lim').onchange=$('bat').onchange=()=>full&&($('mode').value==='live'?render(full.innings):setPos($('pos').value));
+$('mode').onchange=load;$('id').onchange=load;$('lim').onchange=$('bat').onchange=()=>full&&setPos($('pos').value);
 $('dl').onclick=()=>{if(!full){$('msg').textContent='Nothing loaded yet.';return}
   const id=$('mode').value==='live'?($('id').value.trim()||'live'):'replay',a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(full)],{type:'application/json'}));a.download=`balls-${id}.json`;a.click();
