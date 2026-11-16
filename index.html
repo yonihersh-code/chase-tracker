@@ -43,7 +43,7 @@ svg{width:100%;height:auto;background:var(--card);border:1px solid var(--line);b
 <div id="rp"><button id="play">Play</button><input id="pos" type="range" min="0" value="0" aria-label="Replay position"><span id="pl" class="note"></span></div>
 <div class="hero" aria-live="polite"><div id="head" class="sub"></div><div id="big" class="big"></div><div id="sub" class="sub"></div><div class="grid" id="grid"></div></div>
 <svg id="worm" viewBox="0 0 700 260" role="img" aria-label="Runs by ball, both innings"></svg>
-<svg id="mh" viewBox="0 0 700 150" role="img" aria-label="Runs per over, latest innings"></svg>
+<svg id="mh" viewBox="0 0 700 164" role="img" aria-label="Runs per over, latest innings"></svg>
 <p class="note" id="msg"></p>
 </main>
 <script>
@@ -88,13 +88,15 @@ function worm(s1,s2,lim){
   const path=(s,c)=>s.length?`<polyline fill="none" stroke="${c}" stroke-width="2.2" points="${X(0)},${Y(0)} ${s.map(d=>X(d.n).toFixed(1)+','+Y(d.r).toFixed(1)).join(' ')}"/>`:'';
   const wk=(s,c)=>s.filter((d,i)=>i&&d.w>s[i-1].w).map(d=>`<circle cx="${X(d.n)}" cy="${Y(d.r)}" r="4" fill="var(--card)" stroke="${c}" stroke-width="2"/>`).join('');
   let g='';for(let k=0;k<=4;k++){const r=Math.round(mx*k/4);g+=`<line x1="${p}" x2="${W-10}" y1="${Y(r)}" y2="${Y(r)}" stroke="var(--line)"/><text x="4" y="${Y(r)+4}" font-size="11" fill="var(--mute)">${r}</text>`}
-  g+=`<text x="${p}" y="${H-6}" font-size="11" fill="var(--mute)">0</text><text x="${W-10}" y="${H-6}" font-size="11" fill="var(--mute)" text-anchor="end">${lim} overs</text>`;
+  const st=lim>30?10:lim>16?4:2;
+  for(let o=0;o<=lim;o+=st)g+=`<line x1="${X(o*6)}" x2="${X(o*6)}" y1="${Y(0)}" y2="${Y(mx)}" stroke="var(--line)" stroke-dasharray="2 4"/><text x="${X(o*6)}" y="${H-6}" font-size="11" fill="var(--mute)" text-anchor="middle">${o}</text>`;
+  g+=`<text x="${W-10}" y="${H-18}" font-size="11" fill="var(--mute)" text-anchor="end">overs</text>`;
   $('worm').innerHTML=g+path(s1,'var(--a)')+path(s2,'var(--b)')+wk(s1,'var(--a)')+wk(s2,'var(--b)')+`<text x="${p+6}" y="16" font-size="12" fill="var(--a)">First innings</text><text x="${p+100}" y="16" font-size="12" fill="var(--b)">Chase</text>`;
 }
 function mh(balls){
   const per={};balls.forEach(b=>per[b.overNumber]=(per[b.overNumber]||0)+b.runsBat+b.wides+b.noBalls+b.legByes+b.byes+b.penaltyRuns);
   const ks=Object.keys(per).map(Number),m=Math.max(6,...Object.values(per)),W=700,bw=(W-40)/(+$('lim').value||24);
-  $('mh').innerHTML=`<text x="6" y="14" font-size="12" fill="var(--mute)">Runs per over</text>`+ks.map(k=>{const h=120*per[k]/m;return`<rect x="${20+k*bw}" y="${140-h}" width="${bw-3}" height="${h}" fill="var(--a)"/><text x="${20+k*bw+bw/2-1.5}" y="${136-h}" font-size="10" text-anchor="middle" fill="var(--mute)">${per[k]}</text>`}).join('');
+  $('mh').innerHTML=`<text x="6" y="14" font-size="12" fill="var(--mute)">Runs per over</text>`+Array.from({length:(+$('lim').value||24)},(_,k)=>k).filter(k=>k%((+$('lim').value||24)>16?2:1)===0).map(k=>`<text x="${20+k*bw+bw/2-1.5}" y="157" font-size="10" text-anchor="middle" fill="var(--mute)">${k+1}</text>`).join('')+ks.map(k=>{const h=120*per[k]/m;return`<rect x="${20+k*bw}" y="${140-h}" width="${bw-3}" height="${h}" fill="var(--a)"/><text x="${20+k*bw+bw/2-1.5}" y="${136-h}" font-size="10" text-anchor="middle" fill="var(--mute)">${per[k]}</text>`}).join('');
 }
 
 // Replay: reveal the combined ball sequence a ball at a time.
