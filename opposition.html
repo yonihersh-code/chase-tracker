@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#12392b">
+<title>Opposition report</title>
+<style>
+:root{--bg:#eef2ee;--ink:#14201a;--mute:#5b6a61;--card:#fff;--line:#dbe2dc;--a:#1f6b4a;--b:#c0392b;--hero:#12392b;--shadow:0 1px 2px rgba(20,32,26,.06),0 4px 14px rgba(20,32,26,.05)}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1511;--ink:#e6ece7;--mute:#93a399;--card:#17201a;--line:#2a372e;--a:#6fc79a;--b:#ff8a80;--hero:#0b2a1f;--shadow:none}}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 "Avenir Next","Segoe UI",system-ui,sans-serif;font-variant-numeric:tabular-nums}
+.top{background:var(--hero);color:#f3f7f2}
+.top div{max-width:780px;margin:0 auto;padding:12px 16px 14px}
+h1{font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;margin:0;opacity:.65;font-weight:600}
+#ttl{font-size:1.1rem;font-weight:700;margin-top:2px}
+.top a{color:#8fe0b0;font-size:.85rem;text-decoration:none}
+main{max-width:780px;margin:0 auto;padding:14px 16px 48px;display:grid;gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+.card h2{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:0 0 4px;font-weight:700}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}.row>*{min-width:0}
+input,select,button{font:inherit;min-height:40px;padding:6px 10px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px}
+button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+.pri{background:var(--a);color:#fff;border-color:var(--a);font-weight:600}
+#gid{flex:1 1 240px}#saved,#tsel{flex:1 1 200px}#mty{flex:0 0 auto}
+.note{font-size:.85rem;color:var(--mute);margin:6px 0 0}
+.f{display:flex;align-items:center;gap:6px;font-size:.9rem;color:var(--mute)}.f input{min-height:0}
+.status{margin:0;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);font-size:.88rem;color:var(--mute)}.status:empty{display:none}
+.hero{background:var(--hero);color:#f3f7f2;border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+.hero h3{margin:0;font-size:1.5rem}.hero p{margin:4px 0 0;opacity:.75;font-size:.92rem}
+.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:14px}
+.chip{background:rgba(255,255,255,.08);border-radius:10px;padding:8px 12px}
+.chip span{display:block;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;opacity:.7}
+.chip b{font-size:1.35rem}
+.sc{overflow-x:auto;margin-top:6px}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{padding:7px 8px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--card)}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);font-weight:600}
+td small{color:var(--mute)}
+.ok{color:var(--a)}.no{color:var(--b)}
+@media(max-width:480px){.card{padding:12px}.hero{padding:16px}}
+</style>
+</head>
+<body>
+<header class="top"><div><h1>Opposition report</h1><div id="ttl">Pick a grade and a team</div><a href="index.html">&larr; Match tracker</a></div></header>
+<main>
+<section class="card">
+  <h2>Grade and team</h2>
+  <div class="row"><input id="gid" placeholder="Paste a grade link" aria-label="Grade link"><button id="gbtn" class="pri" type="button">Load grade</button></div>
+  <div class="row"><select id="saved" aria-label="Saved grades"></select><select id="tsel" aria-label="Opposition team" hidden></select><select id="mty" aria-label="Match type" hidden><option>One Day</option><option>Two Day</option><option>All</option></select><button id="go" class="pri" type="button" hidden>Build report</button></div>
+  <p class="note" id="gmsg" aria-live="polite"></p>
+</section>
+<p class="status" id="msg" aria-live="polite"></p>
+<div id="rep" hidden>
+  <section class="hero"><h3 id="rt"></h3><p id="rs"></p><div class="chips" id="chips"></div></section>
+  <section class="card"><h2>Matches used</h2><div class="sc" id="mt"></div><p class="note">Only completed matches with ball-by-ball data feed the report below.</p></section>
+  <section class="card"><h2>How they score</h2><p class="note" id="n1"></p><div class="sc" id="ph"></div></section>
+  <section class="card"><h2>How they lose wickets</h2><p class="note" id="n2"></p><div class="sc" id="wk"></div></section>
+  <section class="card"><h2>Batting order</h2><p class="note" id="n3"></p><div class="sc" id="bt"></div></section>
+  <section class="card"><h2>Their bowling</h2><p class="note" id="n4"></p><div class="sc" id="bw"></div></section>
+  <section class="card"><h2>Setting a total or chasing</h2><p class="note" id="n5"></p><div class="sc" id="sc"></div></section>
+  <p class="note">Small samples mislead. Treat every figure as what happened in these games, not what will happen. Saved only in this browser. <button id="clr" type="button">Clear saved data</button></p>
+</div>
+</main>
+<script>
+const FEED='https://grassrootsapiproxy.cricket.com.au/scores/',Q='?jsconfig=eccn%3Atrue',DV='dg3:';
+const $=id=>document.getElementById(id);
+const esc=t=>String(t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const uuid=t=>(String(t).match(/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}/i)||[''])[0].toLowerCase();
+const ls={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+async function getJSON(u){
+  const r=await fetch(u),t=await r.text(),b=t.trim();
+  if(!r.ok||!b)throw new Error(`HTTP ${r.status}, ${b?'body: '+b.slice(0,120):'empty body'}`);
+  try{return JSON.parse(b)}catch(e){throw new Error('not JSON: '+b.slice(0,120))}
+}
+const tot=b=>b.runsBat+b.wides+b.noBalls+b.legByes+b.byes+b.penaltyRuns;
+const pc=(a,b)=>b?Math.round(100*a/b)+'%':'-';
+const f1=(a,b)=>b?(a/b).toFixed(1):'-';
+const ovs=n=>Math.floor(n/6)+'.'+n%6;
+const BANDS=['Overs 1-6','Overs 7-12','Overs 13-18','Overs 19-24','Overs 25+'];
+const tbl=(h,rows)=>`<table><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+let GM=[],TEAM=new Map();
+
+// One innings -> small summary, so finished matches never need fetching twice.
+function digest(j,tid){
+  const out={ni:j.innings.filter(i=>i.balls.length).length,inns:[]};
+  for(const i of [...j.innings].sort((a,b)=>a.inningsOrder-b.inningsOrder)){
+    const bs=i.balls;if(!bs.length)continue;
+    const bat=i.battingTeamId===tid,bands=[0,1,2,3,4].map(()=>({r:0,b:0,d:0,w:0}));
+    const P=new Map(),W=new Map(),wk={};let ov=-1,c=0,prev=0,f=0,s=0,wd=0,nb=0,ord=0;
+    const pl=(id,nm)=>{if(!id)return null;if(!P.has(id))P.set(id,{id,nm,pos:++ord,r:0,b:0,d:0,f:0,s:0,out:''});return P.get(id)};
+    for(const b of bs){
+      if(b.overNumber!==ov){ov=b.overNumber;c=0}c++;
+      const n=ov*6+Math.min(6,c),inc=n-prev;prev=n;
+      const t=tot(b),bd=bands[Math.min(4,Math.floor(ov/6))];
+      if(bat){
+        bd.r+=t;bd.b+=inc;if(inc>0&&t===0)bd.d++;
+        const st=pl(b.strikerParticipantId,b.strikerShortName);pl(b.nonStrikerParticipantId,b.nonStrikerShortName);
+        if(st){st.r+=b.runsBat;if(!b.wides){st.b++;if(b.runsBat===0)st.d++}if(b.runsBat===4){st.f++;f++}if(b.runsBat===6){st.s++;s++}}
+        if(b.dismissedParticipantId){const dp=pl(b.dismissedParticipantId,'Batter');const ty=b.dismissalType||'Out';if(dp)dp.out=ty;wk[ty]=(wk[ty]||0)+1;bd.w++}
+      }else{
+        const id=b.bowlerParticipantId;if(!id)continue;
+        if(!W.has(id))W.set(id,{id,nm:b.bowlerShortName,o:{},r:0,w:0,d:0,wd:0,nb:0});
+        const w=W.get(id),ch=b.runsBat+b.wides+b.noBalls;
+        w.o[ov]=(w.o[ov]||0)+1;w.r+=ch;if(ch===0)w.d++;if(b.wides)w.wd++;if(b.noBalls)w.nb++;
+        if(b.dismissalType&&b.dismissalType!=='Run Out')w.w++;
+      }
+    }
+    const last=bs[bs.length-1];
+    out.inns.push({order:i.inningsOrder,bat,runs:last.progressRuns,wkts:last.progressWickets,n:prev,f,s,bands,wk,
+      P:[...P.values()],W:[...W.values()].map(w=>({id:w.id,nm:w.nm,n:Object.values(w.o).reduce((a,v)=>a+Math.min(6,v),0),r:w.r,w:w.w,d:w.d,wd:w.wd,nb:w.nb}))});
+  }
+  return out;
+}
+
+async function loadGrade(raw){
+  const id=uuid(raw);if(!id){$('gmsg').textContent='No grade ID found. Paste the link from a Play Cricket grade page.';return}
+  $('gmsg').textContent='Loading grade...';
+  try{
+    const [m,r]=await Promise.all([FEED+'grades/'+id+'/matches'+Q,FEED+'grades/'+id+'/rounds'+Q].map(getJSON));
+    GM=m.matches||[];TEAM=new Map();GM.forEach(x=>x.teams.forEach(t=>TEAM.set(t.displayName,t.id)));
+    const played={};GM.filter(x=>x.status==='COMPLETED').forEach(x=>x.teams.forEach(t=>played[t.displayName]=(played[t.displayName]||0)+1));
+    const sv=ls.get('opp',''),name=r.grade?.name||id;
+    ls.set('ogrades',[{id,name},...ls.get('ogrades',[]).filter(x=>x.id!==id)].slice(0,8));savedSel();$('saved').value=id;$('gid').value=id;
+    $('tsel').innerHTML='<option value="">Choose the opposition</option>'+[...TEAM.keys()].sort().map(t=>`<option value="${esc(t)}"${t===sv?' selected':''}>${esc(t)} (${played[t]||0} played)</option>`).join('');
+    $('tsel').hidden=$('go').hidden=$('mty').hidden=false;$('mty').value=ls.get('mty','One Day');$('gmsg').textContent=`${name}: ${GM.length} matches, ${GM.filter(x=>x.status==='COMPLETED').length} completed.`;
+  }catch(e){$('gmsg').textContent='Could not load grade: '+e.message}
+}
+function savedSel(){const g=ls.get('ogrades',[]);$('saved').innerHTML='<option value="">Saved grades</option>'+g.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}
+
+async function build(){
+  const name=$('tsel').value;if(!name){$('msg').textContent='Choose a team first.';return}
+  ls.set('opp',name);const tid=TEAM.get(name);
+  const ms=GM.filter(m=>m.status==='COMPLETED'&&($('mty').value==='All'||m.matchType===$('mty').value)&&m.teams.some(t=>t.id===tid)).sort((a,b)=>(a.matchSchedule[0]?.startDateTime||'').localeCompare(b.matchSchedule[0]?.startDateTime||''));
+  if(!ms.length){$('msg').textContent='That team has no completed matches of that type yet.';return}
+  const res=[];let done=0;$('rep').hidden=true;
+  const one=async m=>{
+    let d=ls.get(DV+m.id+':'+tid,null),why='';
+    if(!d){try{const j=await getJSON(FEED+'matches/'+m.id+'/balls'+Q);if(!Array.isArray(j.innings)||!j.innings.some(i=>i.balls&&i.balls.length))throw new Error('no ball-by-ball data');j.innings.forEach(i=>i.balls=i.balls||[]);d=digest(j,tid);ls.set(DV+m.id+':'+tid,d)}catch(e){why=e.message}}
+    res.push({m,d,why});$('msg').textContent=`Loading matches... ${++done} of ${ms.length}`;
+  };
+  const q=[...ms];await Promise.all([0,1,2].map(async()=>{while(q.length)await one(q.shift())}));
+  res.sort((a,b)=>ms.indexOf(a.m)-ms.indexOf(b.m));$('msg').textContent='';report(name,tid,res);
+}
+
+function report(name,tid,res){
+  const ok=res.filter(x=>x.d),B=[],O=[];
+  ok.forEach(x=>x.d.inns.forEach(i=>(i.bat?B:O).push({...i,m:x.m,ni:x.d.ni})));
+  $('ttl').textContent=name;$('rep').hidden=false;
+  $('rt').textContent=name;$('rs').textContent=`${ok.length} of ${res.length} completed matches have ball-by-ball data. ${B.length} batting innings, ${O.length} bowling innings.`;
+  $('mt').innerHTML=tbl(['Match','Result','Data'],res.map(x=>{const o=x.m.teams.find(t=>t.id!==tid);return[esc(`${x.m.round.shortName} v ${o?.displayName||'?'}`),`<small>${esc(x.m.resultText||'')}</small>`,x.d?`<span class="ok">${x.d.ni} innings</span>`:`<span class="no" title="${esc(x.why)}">none</span>`]}));
+  const bn=B.reduce((s,i)=>s+i.n,0),br=B.reduce((s,i)=>s+i.runs,0),bd=B.reduce((s,i)=>s+i.bands.reduce((a,b)=>a+b.d,0),0),bb=B.reduce((s,i)=>s+i.bands.reduce((a,b)=>a+b.b,0),0);
+  const bnd=B.reduce((s,i)=>s+4*i.f+6*i.s,0);
+  $('chips').innerHTML=[['Batting innings',B.length],['Avg score',f1(br,B.length)],['Run rate',bn?(br*6/bn).toFixed(2):'-'],['Dot balls',pc(bd,bb)],['Runs in boundaries',pc(bnd,br)],['Avg wickets lost',f1(B.reduce((s,i)=>s+i.wkts,0),B.length)]].map(([k,v])=>`<div class="chip"><span>${k}</span><b>${v}</b></div>`).join('');
+  // phases
+  $('n1').textContent=`Based on ${B.length} batting innings. Phases are fixed six-over blocks.`;
+  $('ph').innerHTML=B.length?tbl(['Phase','Innings','Runs/over','Dot %','Wickets'],BANDS.map((l,k)=>{const b=B.map(i=>i.bands[k]),n=b.reduce((s,x)=>s+x.b,0);return n?[l,B.filter(i=>i.bands[k].b>0).length,(b.reduce((s,x)=>s+x.r,0)*6/n).toFixed(2),pc(b.reduce((s,x)=>s+x.d,0),n),b.reduce((s,x)=>s+x.w,0)]:null}).filter(Boolean)):'<p class="note">No batting data.</p>';
+  // wickets
+  const W={};B.forEach(i=>Object.entries(i.wk).forEach(([k,v])=>W[k]=(W[k]||0)+v));const wt=Object.values(W).reduce((a,b)=>a+b,0);
+  $('n2').textContent=`${wt} wickets across ${B.length} innings.`;
+  $('wk').innerHTML=wt?tbl(['How out','Wickets','Share'],Object.entries(W).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[esc(k),v,pc(v,wt)])):'<p class="note">No wickets recorded.</p>';
+  // batting order
+  const PL=new Map();B.forEach(i=>i.P.forEach(p=>{const q=PL.get(p.id)||{nm:p.nm=='Batter'?'?':p.nm,k:0,pos:0,r:0,b:0,d:0,f:0,s:0,o:0};if(p.nm!=='Batter')q.nm=p.nm;q.k++;q.pos+=p.pos;q.r+=p.r;q.b+=p.b;q.d+=p.d;q.f+=p.f;q.s+=p.s;if(p.out)q.o++;PL.set(p.id,q)}));
+  const pls=[...PL.values()].sort((a,b)=>a.pos/a.k-b.pos/b.k||b.r-a.r);
+  $('n3').textContent=`Ordered by average batting position. Most players have only ${Math.max(0,...pls.map(p=>p.k))} innings or fewer in this sample.`;
+  $('bt').innerHTML=pls.length?tbl(['Batter','Inns','Avg pos','Runs','Balls','SR','Dot %','4s/6s','Out'],pls.map(p=>[esc(p.nm),p.k,(p.pos/p.k).toFixed(1),p.r,p.b,p.b?(100*p.r/p.b).toFixed(0):'-',pc(p.d,p.b),`${p.f}/${p.s}`,p.o])):'<p class="note">No batting data.</p>';
+  // bowling
+  const BW=new Map();O.forEach(i=>i.W.forEach(w=>{const q=BW.get(w.id)||{nm:w.nm,k:0,n:0,r:0,w:0,d:0,wd:0,nb:0};q.k++;['n','r','w','d','wd','nb'].forEach(x=>q[x]+=w[x]);BW.set(w.id,q)}));
+  const on=O.reduce((s,i)=>s+i.n,0),oe=O.reduce((s,i)=>s+i.W.reduce((a,w)=>a+w.wd+w.nb,0),0);
+  $('n4').textContent=`${O.length} bowling innings. Team wides and no-balls: ${oe} in ${ovs(on)} overs.`;
+  $('bw').innerHTML=BW.size?tbl(['Bowler','Inns','O','R','W','Econ','Dot %','Wd','Nb'],[...BW.values()].sort((a,b)=>b.n-a.n).map(q=>[esc(q.nm),q.k,ovs(q.n),q.r,q.w,q.n?(q.r*6/q.n).toFixed(1):'-',pc(q.d,q.n),q.wd,q.nb])):'<p class="note">No bowling data.</p>';
+  // setting vs chasing
+  const own=m=>m.teams.find(t=>t.id===tid);
+  const grp=o=>{const g=B.filter(i=>i.ni===2&&i.order===o),n=g.reduce((s,i)=>s+i.n,0),r=g.reduce((s,i)=>s+i.runs,0);
+    return[o===1?'Setting a total':'Chasing',g.length,g.filter(i=>own(i.m).isWinner).length,f1(r,g.length),n?(r*6/n).toFixed(2):'-',f1(g.reduce((s,i)=>s+i.wkts,0),g.length)]};
+  $('n5').textContent='Matches with two innings only. Won counts the match result, not the innings.';
+  $('sc').innerHTML=tbl(['','Innings','Won','Avg score','Run rate','Avg wkts'],[grp(1),grp(2)]);
+  scrollTo({top:0,behavior:'smooth'});
+}
+
+$('gbtn').onclick=()=>loadGrade($('gid').value);
+$('gid').onchange=()=>loadGrade($('gid').value);
+$('gid').addEventListener('paste',()=>setTimeout(()=>loadGrade($('gid').value),0));
+$('saved').onchange=e=>e.target.value&&loadGrade(e.target.value);
+$('go').onclick=build;
+$('mty').onchange=()=>{ls.set('mty',$('mty').value);if($('tsel').value&&GM.length)build()};
+$('clr').onclick=()=>{try{Object.keys(localStorage).filter(k=>k.startsWith(DV)).forEach(k=>localStorage.removeItem(k))}catch(e){}$('msg').textContent='Saved match data cleared.'};
+savedSel();{const g=ls.get('ogrades',[])[0];if(g)loadGrade(g.id)}
+</script>
+</body>
+</html>
