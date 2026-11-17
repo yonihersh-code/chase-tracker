@@ -6,6 +6,9 @@ Live required-rate tracker for Play Cricket matches. Static site, no build step.
 1. Create a repo and add `index.html` and the `fixtures/` folder at the root.
 2. Repo Settings > Pages > Deploy from a branch > `main` / root.
 3. Open `https://<user>.github.io/<repo>/`.
+## Opposition report
+`opposition.html` sits next to `index.html` in the repo root. Paste a grade link, pick a team and press Build report. It reads every completed match for that team, shows which ones had ball-by-ball data, and summarises scoring by phase, how wickets fell, batting order, bowling and setting versus chasing. One Day only is on by default, because mixing in multi-day games blends different formats. Match summaries are saved in the browser (names included); Clear saved data removes them.
+ 
 ## Test locally
 `python3 -m http.server` in this folder, then open http://localhost:8000. Replay mode loads the fixtures with `fetch`, which fails when the file is opened directly from disk.
  
